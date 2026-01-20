@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система управления инвентаризацией - Кировский</title>
+    
+    <!-- Подключаем внешний CSS файл -->
+    <link rel="stylesheet" href="css/style.css">
+       
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h1>Система управления инвентаризацией</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Логин</label>
+                    <input type="text" id="username" placeholder="Введите ваш логин" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="Введите ваш пароль" required>
+                </div>
+                <div id="loginError">Неверный логин или пароль</div>
+                <button type="submit" class="login-btn">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Shop Selection Screen -->
+    <div id="shopSelectScreen" style="display: none;">
+        <div class="shop-select-box">
+            <h1>Выберите магазин</h1>
+            <div class="search-box">
+                <input type="text" id="shopSearchInput" placeholder="Поиск по номеру или названию...">
+                <button id="searchShopBtn"><i class="fas fa-search"></i></button>
+            </div>
+            <div class="shop-list"></div>
+            <button id="selectShopBtn" class="select-shop-btn">Выбрать магазин</button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" style="display: none;">
+        <header>
+            <div class="logo">Инвентаризация</div>
+            <div class="user-info">
+    <span id="headerUserName">Пользователь (Магазин)</span>
+    <div class="user-avatar" id="userAvatar">
+        <div class="avatar-container" id="headerAvatarContainer" 
+             style="width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-user" id="headerAvatarIcon"></i>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <button id="editProfileBtnMenu"><i class="fas fa-user-edit"></i> Редактировать профиль</button>
+            <button id="changePasswordBtnMenu"><i class="fas fa-key"></i> Изменить пароль</button>
+            <hr style="margin: 5px 0; border-color: #ddd;">
+            <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Выйти</button>
+        </div>
+    </div>
+</div>
+            </div>
+        </header>
+
+        <nav>
+            <ul class="nav-tabs">
+                <li class="active" data-nav="dashboard"><i class="fas fa-tachometer-alt"></i> Панель управления</li>
+               
+                <li data-nav="shops"><i class="fas fa-store"></i> Магазины</li>
+                <li data-nav="reports"><i class="fas fa-chart-bar"></i> Отчеты</li>
+               
+            </ul>
+        </nav>
+
+        <div class="container">
+            <div class="sidebar">
+                <ul class="sidebar-menu">
+                    <li class="active" data-sidebar="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Обзор
+                    </li>
+                    <li data-sidebar="create-inventory">
+                        <i class="fas fa-plus-circle"></i> Создать инвентаризацию
+                    </li>
+                    
+                    
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <h1 class="page-title">Панель управления инвентаризацией</h1>
+                
+                <div id="dashboard-content" class="page-content">
+                    <div class="dashboard-actions">
+                        <button id="refreshData" class="btn btn-primary">
+                            <i class="fas fa-sync-alt"></i> Обновить данные
+                        </button>
+                    </div>
+                    
+                    <div class="dashboard-tabs">
+                        <div class="tab active" data-tab="inventories">Инвентаризации</div>
+                        <div class="tab" data-tab="documents">Документы</div>
+                        <div class="tab" data-tab="history">История</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="inventories-tab">
+                        <div class="summary-card">
+                            <h3>Итоговая разница</h3>
+                            <div class="amount" id="total-diff">0 ₽</div>
+                        </div>
+                        
+                        <table id="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th width="40"></th>
+                                    <th>ID</th>
+                                    <th>Дата</th>
+                                    <th>Название</th>
+                                    <th>Строк</th>
+                                    <th>Сумма</th>
+                                    <th>Разница</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-content" id="documents-tab">
+                        <div class="alert alert-warning" id="openDocumentsAlert" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i> Есть открытые документы
+                        </div>
+                        <div class="date-range">
+                            <div class="form-group">
+                                <label for="startDate">Дата начала</label>
+                                <input type="date" id="startDate">
+                            </div>
+                            <div class="form-group">
+                                <label for="endDate">Дата окончания</label>
+                                <input type="date" id="endDate">
+                            </div>
+                        </div>
+                        <button id="checkDocumentsBtn" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Проверить документы
+                        </button>
+                        
+                        <div id="documents-result" style="margin-top: 20px; display: none;">
+                            <h3>Результаты проверки документов</h3>
+                            <div id="documents-status"></div>
+                            <table id="documents-table">
+                                <thead>
+                                    <tr>
+                                        <th>Тип</th>
+                                        <th>Номер</th>
+                                        <th>Дата</th>
+                                        <th>Сумма</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Данные будут загружены через JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="history-tab">
+                        <div class="search-box">
+                            <input type="text" id="historySearch" placeholder="Поиск по истории...">
+                            <button><i class="fas fa-search"></i></button>
+                        </div>
+                        
+                        <table id="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Название</th>
+                                    <th>Сумма</th>
+                                    <th>Разница</th>
+                                    <th>Статус</th>
+                                    <th>Ответственный</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Данные будут загружены через JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Страница инвентаризаций -->
+                <div id="inventories-content" class="page-content" style="display: none;">
+                    <h1>Управление инвентаризациями</h1>
+                    <div class="search-box">
+                        <input type="text" id="inventorySearch" placeholder="Поиск по инвентаризациям...">
+                        <button id="searchInventoryBtn"><i class="fas fa-search"></i></button>
+                    </div>
+                    <table id="all-inventories-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Магазин</th>
+                                <th>Тип</th>
+                                <th>Дата</th>
+                                <th>Название</th>
+                                <th>Строк</th>
+                                <th>Сумма</th>
+                                <th>Разница</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Данные будут загружены через JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Страница магазинов -->
+                <div id="shops-content" class="page-content" style="display: none;">
+                    <h1>Управление магазинами</h1>
+                    <div class="search-box">
+                        <input type="text" id="shopSearch" placeholder="Поиск по магазинам...">
+                        <button id="searchShopBtnMain"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <button id="sortByDateBtn" class="btn btn-secondary">
+                            <i class="fas fa-sort"></i> Сортировать по дате учёта
+                        </button>
+                    </div>
+                    <table id="shops-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Название</th>
+                                <th>Адрес</th>
+                                <th>Последняя инвентаризация</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Данные будут загружены через JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                
+                
+                <!-- Страница отчетов -->
+                <div id="reports-content" class="page-content" style="display: none;">
+                    <h1>Отчеты</h1>
+                    <div class="report-buttons">
+                        <button class="report-btn" id="exportCashBtn">
+                            <i class="fas fa-cash-register"></i> Выгрузить кассы
+                        </button>
+                        <button class="report-btn" id="exportRevenueBtn">
+                            <i class="fas fa-ruble-sign"></i> Выгрузить выручку
+                        </button>
+                        <button class="report-btn" id="exportSalesBtn">
+                            <i class="fas fa-shopping-cart"></i> Выгрузить продажи
+                        </button>
+                        <button class="report-btn" id="exportStockBtn">
+                            <i class="fas fa-boxes"></i> Выгрузить остатки
+                        </button>
+                        <button class="report-btn" id="executeOperationsBtn">
+                            <i class="fas fa-tasks"></i> Выполнить хоз-операции
+                        </button>
+                        <button class="report-btn" id="uploadNaturalLossBtn">
+                            <i class="fas fa-percentage"></i> Загрузить естественную убыль
+                        </button>
+                        <button class="report-btn" id="wasteBtn">
+                            <i class="fas fa-trash-alt"></i> Отходы
+                        </button>
+                    </div>
+                </div>
+                
+<!-- Страница настроек -->
+<div id="settings-content" class="page-content" style="display: none;">
+    <h1>Настройки системы</h1>
+    
+    <div class="profile-section">
+        <h2><i class="fas fa-user-circle"></i> Профиль пользователя</h2>
+        
+        <div class="profile-card">
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <!-- Аватар в профиле -->
+                <div class="profile-avatar" id="profileAvatarPreview" 
+                     style="width: 80px; height: 80px; border-radius: 50%; background-color: #3498db; 
+                            display: flex; align-items: center; justify-content: center; 
+                            font-size: 32px; color: white; margin-right: 20px; cursor: pointer; overflow: hidden;">
+                    <i class="fas fa-user" id="avatarIcon"></i>
+                </div>
+                <div>
+                    <!-- Имя в профиле -->
+                    <h3 id="profileNameDisplay">Системный администратор</h3>
+                    <!-- Телефон в профиле -->
+                    <p id="profilePhoneDisplay">Телефон не указан</p>
+                </div>
+            </div>
+            
+            <!-- Кнопка редактирования профиля -->
+            <button id="editProfileBtn" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Редактировать профиль
+            </button>
+        </div>
+    </div>
+    
+    <div class="settings-options">
+        <!-- Кнопка изменения пароля -->
+        <button id="changePasswordBtn" class="btn btn-primary" style="margin-bottom: 20px;">
+            <i class="fas fa-key"></i> Изменить пароль
+        </button>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования профиля (убедитесь, что оно есть) -->
+<div id="editProfileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Редактирование профиля</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <div class="avatar-upload">
+                    <!-- Превью аватара в модалке -->
+                    <div class="avatar-preview" id="avatarPreview" 
+                         style="width: 100px; height: 100px; border-radius: 50%; 
+                                background-color: #3498db; margin: 0 auto 15px; 
+                                display: flex; align-items: center; justify-content: center;
+                                font-size: 40px; color: white; overflow: hidden; cursor: pointer;">
+                        <i class="fas fa-user" id="previewIcon"></i>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                    <!-- Кнопка изменения аватара -->
+                    <button type="button" id="changeAvatarBtn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-camera"></i> Изменить фото
+                    </button>
+                    <!-- Кнопка удаления аватара -->
+                    <button type="button" id="removeAvatarBtn" class="btn btn-danger btn-sm" style="display: none;">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editFullName">ФИО</label>
+                <input type="text" id="editFullName" class="form-control" placeholder="Введите ваше ФИО">
+            </div>
+            
+            <div class="form-group">
+                <label for="editPhone">Номер телефона</label>
+                <input type="tel" id="editPhone" class="form-control" placeholder="+7 (999) 123-45-67">
+            </div>
+            
+            <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" class="form-control" placeholder="example@mail.ru">
+            </div>
+            
+            <!-- Ошибки -->
+            <div id="profileError" style="color: red; display: none; margin-top: 10px;"></div>
+        </div>
+        <div class="modal-footer">
+            <!-- Кнопка отмены -->
+            <button id="cancelEditProfile" class="btn btn-danger">Отмена</button>
+            <!-- Кнопка сохранения -->
+            <button id="saveProfileBtn" class="btn btn-success">Сохранить изменения</button>
+        </div>
+    </div>
+</div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания инвентаризации -->
+    <div id="createInventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Создать инвентаризацию</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="inventoryType">Тип инвентаризации</label>
+                    <select id="inventoryType" class="form-control">
+                        <option value="general">Общая инвентаризация</option>
+                        <option value="alcohol">Алкоголь</option>
+                        <option value="beer">Пиво</option>
+                        <option value="cigarettes">Сигареты</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryDate">Дата</label>
+                    <input type="date" id="inventoryDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="inventoryReason">Название</label>
+                    <input type="text" id="inventoryReason" class="form-control" placeholder="Введите название инвентаризации">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelCreateInventory" class="btn btn-danger">Отмена</button>
+                <button id="confirmCreateInventory" class="btn btn-success">Создать</button>
+            </div>
+        </div>
+    </div>
+	
+	
+	<!-- Модальное окно выбора типа печати для бухгалтера -->
+<div id="printForAccountantModal" class="modal">
+    <div class="modal-content" style="width: 600px;">
+        <div class="modal-header">
+            <h2>Печать для бухгалтера</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="printInventoryId">Инвентаризация</label>
+                <input type="text" id="printInventoryId" class="form-control" readonly>
+                <input type="hidden" id="printInventoryType">
+            </div>
+            
+            <div class="form-group">
+                <label for="printType">Тип печати</label>
+                <select id="printType" class="form-control">
+                    <option value="full">Сохранить полную сличительную ведомость</option>
+                    <option value="totals">Сохранить только итоги сличительной ведомости</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="printFormat">Формат вывода</label>
+                <select id="printFormat" class="form-control">
+                    <option value="pdf">PDF документ</option>
+                    <option value="excel">Excel файл</option>
+                    <option value="word">Word документ</option>
+                    <option value="print">Непосредственно на печать</option>
+                </select>
+            </div>
+            
+            <div id="printOptions" style="display: none; margin-top: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Параметры группировки итогов:</h4>
+                <div class="form-group">
+                    <label for="groupBy">Группировать по:</label>
+                    <select id="groupBy" class="form-control">
+                        <option value="product_group">Группе товаров</option>
+                        <option value="product_type">Вид товара</option>
+                        <option value="department">Отделу/Секции</option>
+                        <option value="operator">Оператору</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="includeSubtotals" checked>
+                        Включать промежуточные итоги
+                    </label>
+                </div>
+            </div>
+            
+            <div id="printResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат печати:</h4>
+                <div id="printResultContent"></div>
+            </div>
+            
+            <div id="printLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет формирование документа...</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelPrintForAccountant" class="btn btn-danger">Отмена</button>
+            <button id="confirmPrintForAccountant" class="btn btn-success">
+                <i class="fas fa-print"></i> Сформировать документ
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно загрузки описей -->
+    <div id="uploadInventoriesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Загрузить описи</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">               
+                </div>
+                <div class="form-group">
+                    <label for="inventorySelect">Инвентаризация</label>
+                    <select id="inventorySelect" class="form-control">
+                        <option value="">-- Выберите инвентаризацию --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryFiles">Файлы описей</label>
+                    <input type="file" id="inventoryFiles" class="form-control" multiple>
+                    <div id="selectedFiles"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelUploadInventories" class="btn btn-danger">Отмена</button>
+                <button id="confirmUploadInventories" class="btn btn-success">Загрузить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Полноэкранное окно просмотра инвентаризации -->
+    <div id="viewInventoryFullScreen" class="full-screen-modal" style="display: none;">
+        <div class="full-screen-header">
+            <h2>Детали инвентаризации</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="full-screen-content">
+            <div class="inventory-details">
+                <h2 id="inventoryTitleFull"></h2>
+                <p><strong>ID:</strong> <span id="inventoryIdFull"></span></p>
+                <p><strong>Дата:</strong> <span id="inventoryDateTextFull"></span></p>
+                <p><strong>Название:</strong> <span id="inventoryReasonTextFull"></span></p>
+                <p><strong>Сумма:</strong> <span id="inventoryAmountFull"></span></p>
+                <p><strong>Разница:</strong> <span id="inventoryDifferenceFull"></span></p>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0;">
+                <h3>Описи операторов</h3>
+                <div class="more-actions">
+    <button id="addInventoryItemBtnFull" class="btn btn-success">
+        <i class="fas fa-plus"></i> Добавить опись
+    </button>
+    <div class="more-actions-menu">
+        <button onclick="showAddInventoryItemModal('manual', true)">
+            <i class="fas fa-keyboard"></i> Вручную
+        </button>
+        <button onclick="showAddInventoryItemModal('upload', true)">
+            <i class="fas fa-upload"></i> Загрузить файл
+        </button>
+    </div>
+</div>
+            </div>
+            
+            <table id="inventory-operators-table-full">
+                <thead>
+                    <tr>
+                        <th>ID</th>                      
+                        <th>Дата</th>
+                        <th>Название</th>
+                        <th>Строк</th>
+                        <th>Количество</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+						<th>Закрыть опись</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Данные будут загружены через JavaScript -->
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px;">
+                <button id="saveInventoriesBtnFull" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Сохранить описи в файл
+                </button>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Полноэкранное окно просмотра товаров в описи -->
+    <div id="viewInventoryItemsFullScreen" class="full-screen-modal" style="display: none;">
+        <div class="full-screen-header">
+            <h2>Товары в описи</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="full-screen-content">
+            <div class="inventory-details">
+                <h3 id="inventoryItemTitleFull"></h3>
+                <p><strong>Дата:</strong> <span id="inventoryItemDateFull"></span></p>
+                <p><strong>Количество строк:</strong> <span id="inventoryItemLinesFull"></span></p>
+                <p><strong>Общее количество:</strong> <span id="inventoryItemTotalQuantityFull"></span></p>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <button id="addItemBtn" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Добавить товар
+                </button>
+            </div>
+            
+            <div class="inventory-items-container">
+                <table id="inventory-items-table-full">
+                    <thead>
+                        <tr>
+                            <th>Штрихкод</th>
+                            <th>Наименование</th>
+                            <th>Количество</th>
+							<th>Цена, ₽</th>
+            <th>Сумма, ₽</th>
+            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Товары будут загружены через JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="full-screen-footer">
+            <button id="saveInventoryItemsBtn" class="btn btn-success">
+                <i class="fas fa-save"></i> Сохранить изменения
+            </button>
+            
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления описи -->
+<div id="addInventoryItemModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Добавить опись вручную</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="itemName">Название описи</label>
+                <input type="text" id="itemName" class="form-control" placeholder="Введите название описи">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelAddInventoryItem" class="btn btn-danger">Отмена</button>
+            <button id="confirmAddInventoryItem" class="btn btn-success">Добавить</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно загрузки файла описи -->
+    <div id="uploadInventoryItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Загрузить файл описи</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    
+                </div>
+                <div class="form-group">
+                    <label for="inventoryFile">Файл описи</label>
+                    <input type="file" id="inventoryFile" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelUploadInventoryItem" class="btn btn-danger">Отмена</button>
+                <button id="confirmUploadInventoryItem" class="btn btn-success">Загрузить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно изменения пароля -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Изменение пароля</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="currentPassword">Текущий пароль</label>
+                    <input type="password" id="currentPassword" class="form-control" placeholder="Введите текущий пароль">
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Новый пароль</label>
+                    <input type="password" id="newPassword" class="form-control" placeholder="Введите новый пароль">
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Подтвердите новый пароль</label>
+                    <input type="password" id="confirmNewPassword" class="form-control" placeholder="Повторите новый пароль">
+                </div>
+                <div id="passwordError" style="color: red; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelChangePassword" class="btn btn-danger">Отмена</button>
+                <button id="confirmChangePassword" class="btn btn-success">Изменить пароль</button>
+            </div>
+        </div>
+    </div>
+	
+	<!-- Модальное окно редактирования профиля -->
+<div id="editProfileModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Редактирование профиля</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group" style="text-align: center; margin-bottom: 20px;">
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview" 
+                         style="width: 100px; height: 100px; border-radius: 50%; 
+                                background-color: #3498db; margin: 0 auto 15px; 
+                                display: flex; align-items: center; justify-content: center;
+                                font-size: 40px; color: white; overflow: hidden; cursor: pointer;">
+                        <i class="fas fa-user" id="previewIcon"></i>
+                    </div>
+                    <input type="file" id="avatarUpload" accept="image/*" style="display: none;">
+                    <button type="button" id="changeAvatarBtn" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-camera"></i> Изменить фото
+                    </button>
+                    <button type="button" id="removeAvatarBtn" class="btn btn-danger btn-sm" style="display: none;">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="editFullName">ФИО</label>
+                <input type="text" id="editFullName" class="form-control" placeholder="Введите ваше ФИО">
+            </div>
+            
+            <div class="form-group">
+                <label for="editPhone">Номер телефона</label>
+                <input type="tel" id="editPhone" class="form-control" placeholder="+7 (999) 123-45-67">
+            </div>
+            
+            <div class="form-group">
+                <label for="editEmail">Email</label>
+                <input type="email" id="editEmail" class="form-control" placeholder="example@mail.ru">
+            </div>
+            
+            <div id="profileError" style="color: red; display: none; margin-top: 10px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelEditProfile" class="btn btn-danger">Отмена</button>
+            <button id="saveProfileBtn" class="btn btn-success">Сохранить изменения</button>
+        </div>
+    </div>
+</div>
+
+
+   <!-- Модальное окно добавления товара в опись -->
+<div id="addItemModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Добавить товар в опись</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="itemBarcode">Штрихкод <small class="text-muted">(введите или отсканируйте)</small></label>
+                <input type="text" id="itemBarcode" class="form-control" placeholder="Введите 13-значный штрихкод" maxlength="13">
+                <small class="form-text text-muted">Например: 4601234567890</small>
+                <div id="barcodeProductInfo" style="display: none; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px;">
+                    <strong>Товар: </strong><span id="detectedProductName"></span><br>
+                    <small>Категория: <span id="detectedProductCategory"></span></small>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="itemQuantity">Количество</label>
+                <input type="number" step="0.001" id="itemQuantity" class="form-control" placeholder="0.000" min="0.001">
+                <small class="form-text text-muted">Введите количество с точностью до 3 знаков</small>
+            </div>
+            
+            <div class="alert alert-info" id="autoFillAlert" style="display: none;">
+                <i class="fas fa-info-circle"></i> Товар определен автоматически по штрихкоду
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelAddItem" class="btn btn-danger">Отмена</button>
+            <button id="confirmAddItem" class="btn btn-success">Добавить товар</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования товара в описи -->
+<div id="editItemModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Редактировать товар</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Информация о товаре -->
+            <div id="editProductInfo" class="mb-3"></div>
+            
+            <div class="form-group">
+                <label for="editItemBarcode">Штрихкод *</label>
+                <input type="text" id="editItemBarcode" class="form-control" placeholder="Введите штрихкод" required>
+                <small class="form-text text-muted">По штрихкоду определяется название и цена товара</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="editItemName">Наименование товара</label>
+                <input type="text" id="editItemName" class="form-control" readonly style="background-color: #f8f9fa;">
+                <small class="form-text text-muted">Определяется автоматически по штрихкоду</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="editItemQuantity">Количество *</label>
+                <input type="number" step="0.001" id="editItemQuantity" class="form-control" min="0.001" required>
+                <small class="form-text text-muted">Введите новое количество</small>
+            </div>
+            
+            <input type="hidden" id="editItemIndex">
+            
+            <div id="editError" style="color: red; display: none; margin-top: 10px;"></div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelEditItem" class="btn btn-danger">Отмена</button>
+            <button id="confirmEditItem" class="btn btn-success">Сохранить изменения</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно выгрузки данных по кассам -->
+<div id="exportCashModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по кассам</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label for="cashDate">Дата выгрузки</label>
+                <input type="date" id="cashDate" class="form-control" value="">
+            </div>
+            <div class="form-group">
+                <label for="cashFormat">Формат выгрузки</label>
+                <select id="cashFormat" class="form-control">
+                    <option value="screen">Вывод на экран</option>
+                    <option value="print">На печать</option>
+                    <option value="wordpad">Выгрузка в WordPad</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="cashResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="cashResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="cashLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по кассам...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="cashProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelExportCash" class="btn btn-danger">Отмена</button>
+            <button id="confirmExportCash" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно выгрузки данных по выручке -->
+<div id="exportRevenueModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по выручке</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="date-range">
+                <div class="form-group">
+                    <label for="revenueStartDate">Дата начала</label>
+                    <input type="date" id="revenueStartDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="revenueEndDate">Дата окончания</label>
+                    <input type="date" id="revenueEndDate" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="revenueFormat">Формат выгрузки</label>
+                <select id="revenueFormat" class="form-control">
+                    <option value="screen">Вывод на экран</option>
+                    <option value="print">На печать</option>
+                    <option value="word">Выгрузка в Word</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="revenueGroupBy">Группировать по</label>
+                <select id="revenueGroupBy" class="form-control">
+                    <option value="day">Дням</option>
+                    <option value="week">Неделям</option>
+                    <option value="month">Месяцам</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="revenueResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="revenueResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="revenueLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по выручке...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="revenueProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelExportRevenue" class="btn btn-danger">Отмена</button>
+            <button id="confirmExportRevenue" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+   <!-- Модальное окно выгрузки данных по продажам -->
+<div id="exportSalesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по продажам</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Выбор типа периода -->
+            <div class="form-group">
+                <label for="salesPeriodType">Тип периода</label>
+                <select id="salesPeriodType" class="form-control">
+                    <option value="single">Один день</option>
+                    <option value="range">Период</option>
+                </select>
+            </div>
+            
+            <!-- Для одного дня -->
+            <div class="form-group" id="singleDateGroup">
+                <label for="salesSingleDate">Дата</label>
+                <input type="date" id="salesSingleDate" class="form-control">
+            </div>
+            
+            <!-- Для периода -->
+            <div class="form-group" id="rangeDateGroup" style="display: none;">
+                <div class="date-range">
+                    <div>
+                        <label for="salesStartDate">Дата начала</label>
+                        <input type="date" id="salesStartDate" class="form-control">
+                    </div>
+                    <div>
+                        <label for="salesEndDate">Дата окончания</label>
+                        <input type="date" id="salesEndDate" class="form-control">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Формат выгрузки -->
+            <div class="form-group">
+                <label for="salesFormat">Формат выгрузки</label>
+                <select id="salesFormat" class="form-control">
+                    <option value="screen">Вывод на экран</option>
+                    <option value="print">На печать</option>
+                    <option value="word">Выгрузка в Word</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <!-- Группировки -->
+            <div class="form-group">
+                <label for="salesGroupBy1">Группировка 1</label>
+                <select id="salesGroupBy1" class="form-control">
+                    <option value="whole">За весь период</option>
+                    <option value="daily">По каждому дню</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="salesGroupBy2">Группировка 2</label>
+                <select id="salesGroupBy2" class="form-control">
+                    <option value="products">По товарам</option>
+                    <option value="totals">По итогам</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="salesGroupBy3">Группировка 3</label>
+                <select id="salesGroupBy3" class="form-control">
+                    <option value="all">По всем товарам</option>
+                    <option value="departments">По отделам</option>
+                    <option value="groups">По группам</option>
+                    <option value="subgroups">По подгруппам</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="salesResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="salesResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="salesLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по продажам...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="salesProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelExportSales" class="btn btn-danger">Отмена</button>
+            <button id="confirmExportSales" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+   <!-- Модальное окно выгрузки данных по остаткам -->
+<div id="exportStockModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по остаткам</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Дата остатков -->
+            <div class="form-group">
+                <label for="stockDate">На утро даты</label>
+                <input type="date" id="stockDate" class="form-control" value="">
+            </div>
+            
+            <!-- Формат выгрузки -->
+            <div class="form-group">
+                <label for="stockFormat">Формат выгрузки</label>
+                <select id="stockFormat" class="form-control">
+                    <option value="screen">Вывод на экран</option>
+                    <option value="print">На печать</option>
+                    <option value="wordpad">Выгрузка в WordPad</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <!-- Группировки -->
+            <div class="form-group">
+                <label for="stockGroupBy1">Группировка 1</label>
+                <select id="stockGroupBy1" class="form-control">
+                    <option value="products">По товарам</option>
+                    <option value="totals">Итоги</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="stockGroupBy2">Группировка 2</label>
+                <select id="stockGroupBy2" class="form-control">
+                    <option value="all">По всем товарам</option>
+                    <option value="departments">По отделам</option>
+                    <option value="groups">По группам</option>
+                    <option value="subgroups">По подгруппам</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="stockResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="stockResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="stockLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по остаткам...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="stockProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelExportStock" class="btn btn-danger">Отмена</button>
+            <button id="confirmExportStock" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+
+
+   <!-- Модальное окно выполнения хозяйственных операций -->
+<div id="executeOperationsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выполнение хозяйственных операций</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Выбор подразделения -->
+            <div class="form-group">
+                <label for="operationDivisionType">Подразделение</label>
+                <select id="operationDivisionType" class="form-control">
+                    <option value="shop">По номеру магазина</option>
+                    <option value="perspective">По ракурсу подразделения</option>
+                </select>
+            </div>
+            
+            <!-- Для номера магазина -->
+            <div class="form-group" id="shopNumberGroup">
+                <label for="operationShopNumber">Номер магазина</label>
+                <input type="text" id="operationShopNumber" class="form-control" placeholder="Введите номер магазина">
+            </div>
+            
+            <!-- Для ракурса подразделения -->
+            <div class="form-group" id="perspectiveGroup" style="display: none;">
+                <label for="operationPerspective">Ракурс подразделения</label>
+                <select id="operationPerspective" class="form-control">
+                    <option value="all">Все подразделения</option>
+                    <option value="north">Северный округ</option>
+                    <option value="south">Южный округ</option>
+                    <option value="center">Центральный округ</option>
+                    <option value="east">Восточный округ</option>
+                </select>
+            </div>
+            
+            <!-- Периоды -->
+            <div class="form-group">
+                <label for="operationStartDate">За период с</label>
+                <input type="date" id="operationStartDate" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="operationEndDate">По:</label>
+                <input type="date" id="operationEndDate" class="form-control">
+            </div>
+            
+            <!-- Операции -->
+            <div class="form-group">
+                <label for="operationNumbers">Операции (через запятую)</label>
+                <input type="text" id="operationNumbers" class="form-control" placeholder="Например: 123, 456, 789">
+            </div>
+            
+            <!-- Выбор товаров -->
+            <div class="form-group">
+                <label for="operationProductType">Товары</label>
+                <select id="operationProductType" class="form-control">
+                    <option value="all">По всем товарам</option>
+                    <option value="single">По одному виду товаров</option>
+                </select>
+            </div>
+            
+            <!-- Для одного товара -->
+            <div class="form-group" id="singleProductGroup" style="display: none;">
+                <label for="operationSingleProduct">Название товара</label>
+                <input type="text" id="operationSingleProduct" class="form-control" placeholder="Введите название товара">
+            </div>
+            
+            <!-- Формат выгрузки -->
+            <div class="form-group">
+                <label for="operationFormat">Формат</label>
+                <select id="operationFormat" class="form-control">
+                    <option value="excel">Выгрузка в Excel</option>
+                    <option value="wordpad">Выгрузка в WordPad</option>
+                </select>
+            </div>
+            
+            <!-- Галочка -->
+            <div class="form-group">
+                <label for="operationPrintTotalsOnly">
+                    <input type="checkbox" id="operationPrintTotalsOnly">
+                    Печатать только итоги по операциям
+                </label>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="operationResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выполнения операций:</h4>
+                <div id="operationResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="operationLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Выполнение хозяйственных операций...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="operationProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelExecuteOperations" class="btn btn-danger">Отмена</button>
+            <button id="confirmExecuteOperations" class="btn btn-success">Выполнить</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно загрузки естественной убыли -->
+    <div id="uploadNaturalLossModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по естественной убыли</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="date-range">
+                <div class="form-group">
+                    <label for="lossStartDate">Дата начала</label>
+                    <input type="date" id="lossStartDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="lossEndDate">Дата окончания</label>
+                    <input type="date" id="lossEndDate" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="lossFormat">Формат выгрузки</label>
+                <select id="lossFormat" class="form-control">
+                    <option value="wordpad">Выгрузка в WordPad</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="lossResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="lossResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="lossLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по естественной убыли...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="lossProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelUploadNaturalLoss" class="btn btn-danger">Отмена</button>
+            <button id="confirmUploadNaturalLoss" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Модальное окно работы с отходами -->
+    <div id="wasteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Выгрузка данных по отходам</h2>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <div class="date-range">
+                <div class="form-group">
+                    <label for="wasteStartDate">Дата начала</label>
+                    <input type="date" id="wasteStartDate" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="wasteEndDate">Дата окончания</label>
+                    <input type="date" id="wasteEndDate" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="wasteFormat">Формат выгрузки</label>
+                <select id="wasteFormat" class="form-control">
+                    <option value="wordpad">Выгрузка в WordPad</option>
+                    <option value="excel">Выгрузка в Excel</option>
+                </select>
+            </div>
+            
+            <!-- Блок для отображения результата -->
+            <div id="wasteResult" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                <h4 style="margin-bottom: 10px;">Результат выгрузки:</h4>
+                <div id="wasteResultContent"></div>
+            </div>
+            
+            <!-- Блок загрузки -->
+            <div id="wasteLoading" style="display: none; text-align: center; margin-top: 20px;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
+                <p style="margin-top: 10px;">Идет выгрузка данных по отходам...</p>
+                <div class="progress" style="height: 10px; margin-top: 10px;">
+                    <div id="wasteProgressBar" class="progress-bar progress-bar-striped progress-bar-animated" 
+                         role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelWaste" class="btn btn-danger">Отмена</button>
+            <button id="confirmWaste" class="btn btn-success">Выгрузить</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Кнопка переключения темы -->
+    <button id="themeToggle" class="theme-toggle">
+        <i class="fas fa-moon"></i>
+    </button>
+
+    
+	<!-- Подключаем наши скрипты -->
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/database.js"></script>
+  <script src="js/api-client.js"></script>
+  <script src="js/data-manager.js"></script>
+  <script src="js/handlers/reports.js"></script>
+  <script src="js/handlers/auth.js"></script>
+  <script src="js/handlers/shops.js"></script>
+  <script src="js/handlers/user-menu.js"></script>
+  <script src="js/handlers/profile.js"></script>
+  <script src="js/handlers/theme.js"></script>
+  <script src="js/handlers/navigation.js"></script>
+  <script src="js/handlers/dashboard.js"></script>
+  <script src="js/handlers/inventory-items.js"></script>
+  <script src="js/handlers/documents.js"></script>
+  <script src="js/handlers/modals.js"></script>
+  <script src="js/handlers/inventory-management.js"></script>
+  <script src="js/handlers/history.js"></script>
+  <script src="js/handlers/pages.js"></script>
+  <script src="js/handlers/settings-page.js"></script>
+  <script src="js/handlers/password.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
